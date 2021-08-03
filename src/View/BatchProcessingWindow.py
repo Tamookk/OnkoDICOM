@@ -25,7 +25,7 @@ class UIBatchProcessingWindow(object):
         batch_window_instance.setObjectName("BatchWindowInstance")
         batch_window_instance.setWindowIcon(window_icon)
         batch_window_instance.setWindowTitle("Batch Processing")
-        batch_window_instance.setFixedSize(840, 530)
+        batch_window_instance.resize(840, 530)
 
         self.file_path = "Select file path.. "
 
@@ -37,7 +37,7 @@ class UIBatchProcessingWindow(object):
         self.directory_input = QLineEdit()
         self.directory_input.setText(self.file_path)
         self.directory_input.textChanged.connect(self.line_edit_changed)
-        #self.directory_input.returnPressed.connect(self.search_for_patient)
+        self.directory_input.returnPressed.connect(self.scan_directory_for_patients)
 
         self.browse_button = QPushButton("Change")
         self.browse_button.setObjectName("NormalButton")
@@ -51,10 +51,13 @@ class UIBatchProcessingWindow(object):
         self.bottom_label.setFont(self.label_font)
         self.refresh_button = QPushButton("Refresh")
         self.refresh_button.setObjectName("NormalButton")
+        self.refresh_button.setStyleSheet(self.stylesheet)
         self.back_button = QPushButton("Back")
         self.back_button.setObjectName("SkipButton")
+        self.back_button.setStyleSheet(self.stylesheet)
         self.confirm_button = QPushButton("Confirm")
         self.confirm_button.setObjectName("ConfirmButton")
+        self.confirm_button.setStyleSheet(self.stylesheet)
 
         self.layout = QVBoxLayout()
         self.directory_layout = QGridLayout()
@@ -84,6 +87,8 @@ class UIBatchProcessingWindow(object):
         # Connect buttons to functions
         self.browse_button.clicked.connect(self.show_file_browser)
         self.confirm_button.clicked.connect(self.choose_button_clicked)
+        self.refresh_button.clicked.connect(self.scan_directory_for_patients)
+        self.back_button.clicked.connect(lambda: batch_window_instance.close())
 
         # Create threadpool for multithreading
         self.threadpool = QThreadPool()
@@ -104,6 +109,7 @@ class UIBatchProcessingWindow(object):
 
         # Update directory text
         self.directory_input.setText(self.file_path)
+        self.scan_directory_for_patients()
 
     def line_edit_changed(self):
         """
@@ -125,19 +131,17 @@ class UIBatchProcessingWindow(object):
         Executes once the directory search is complete.
         :param dicom_structure: DICOMStructure object constructed by the directory search.
         """
-        print ("Search complete")
         if dicom_structure is None:  # dicom_structure will be None if function was interrupted.
             return
 
         self.patient_count = len(dicom_structure.patients)
-        self.patient_label.setText("There are {} patients in this directory".format(self.patient_count))
+        self.patient_label.setText("There are {} patient(s) in this directory".format(self.patient_count))
 
     def search_progress(self):
-        pass
+        self.patient_label.setText("Loading files .. ")
 
     def scan_directory_for_patients(self):
         if self.file_path != "":
-
             self.interrupt_flag = threading.Event()
 
             # Then, create a new thread that will load the selected folder
@@ -149,7 +153,5 @@ class UIBatchProcessingWindow(object):
 
             # Execute the thread
             self.threadpool.start(worker)
-            print("Searching")
         else:
-            print("Mo patients..")
             self.patient_label.setText("No patients in the selected directory")
