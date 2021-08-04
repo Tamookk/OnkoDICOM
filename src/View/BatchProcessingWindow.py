@@ -2,11 +2,13 @@ import platform, threading
 from os.path import expanduser
 from src.Controller.PathHandler import resource_path
 from PySide6.QtGui import QIcon, QPixmap, QFont
-from PySide6.QtWidgets import QFileDialog
-from PySide6.QtCore import QThreadPool
+from PySide6.QtWidgets import QFileDialog, QCheckBox
+from PySide6.QtCore import QThreadPool, Qt
 from src.Model.Worker import Worker
 from src.Model import DICOMDirectorySearch
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QLineEdit, QPushButton, QGridLayout
+
+from src.Model.BatchProcessing.BatchProgressWindow import BatchProgressWindow
 
 class UIBatchProcessingWindow(object):
 
@@ -28,6 +30,7 @@ class UIBatchProcessingWindow(object):
         batch_window_instance.resize(840, 530)
 
         self.file_path = "Select file path.. "
+        self.processes = []
 
         self.label_text = "Select directory to perform batch processing:"
         self.label_font = QFont()
@@ -61,7 +64,7 @@ class UIBatchProcessingWindow(object):
 
         self.layout = QVBoxLayout()
         self.directory_layout = QGridLayout()
-        self.patient_layout = QGridLayout()
+        self.middle_layout = QGridLayout()
         self.bottom_layout = QGridLayout()
 
         batch_window_instance.setLayout(self.layout)
@@ -73,7 +76,13 @@ class UIBatchProcessingWindow(object):
 
         self.patient_label = QLabel("No patients in the selected directory")
         self.patient_label.setFont(self.label_font)
-        self.patient_layout.addWidget(self.patient_label, 0, 0, 1, 4)
+        self.middle_layout.addWidget(self.patient_label, 0, 0, 1, 4)
+
+        self.iso2roi_checkbox = QCheckBox("ISO2ROI")
+        self.suv2roi_checkbox = QCheckBox("SUV2ROI")
+
+        self.middle_layout.addWidget(self.iso2roi_checkbox)
+        self.middle_layout.addWidget(self.suv2roi_checkbox)
 
         self.bottom_layout.addWidget(self.bottom_label, 0, 0, 2, 4)
         self.bottom_layout.addWidget(self.refresh_button, 2, 0, 1, 1)
@@ -81,17 +90,28 @@ class UIBatchProcessingWindow(object):
         self.bottom_layout.addWidget(self.confirm_button, 2, 3, 1, 1)
 
         self.layout.addLayout(self.directory_layout)
-        self.layout.addLayout(self.patient_layout)
+        self.layout.addLayout(self.middle_layout)
         self.layout.addLayout(self.bottom_layout)
 
         # Connect buttons to functions
         self.browse_button.clicked.connect(self.show_file_browser)
-        self.confirm_button.clicked.connect(self.choose_button_clicked)
+        self.confirm_button.clicked.connect(self.confirm_button_clicked)
         self.refresh_button.clicked.connect(self.scan_directory_for_patients)
         self.back_button.clicked.connect(lambda: batch_window_instance.close())
 
+        self.iso2roi_checkbox.stateChanged.connect(lambda state: self.checkbox_changed("iso2roi", state))
+        self.suv2roi_checkbox.stateChanged.connect(lambda state: self.checkbox_changed("suv2roi", state))
+
+        self.dicom_structure = {}
+
         # Create threadpool for multithreading
         self.threadpool = QThreadPool()
+
+    def checkbox_changed(self, identifier, state):
+        if state == 2:
+            self.processes.append(identifier)
+        else:
+            self.processes.remove(identifier)
 
     def show_file_browser(self):
         """
@@ -118,13 +138,23 @@ class UIBatchProcessingWindow(object):
         self.file_path = self.directory_input.text()
 
 
-    def choose_button_clicked(self):
+    def confirm_button_clicked(self):
         """
-        Executes when the choose button is clicked.
-        Gets filepath from the user and loads all files and subdirectories.
+        Executes when the confirm button is clicked.
         """
+        self.progress_window = BatchProgressWindow(self, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        self.progress_window.signal_loaded.connect(self.on_loaded)
+        self.progress_window.signal_error.connect(self.on_loading_error)
 
-        self.scan_directory_for_patients()
+        self.progress_window.start_processing(self.dicom_structure)
+        self.progress_window.exec_()
+
+    def on_loaded(self):
+        self.progress_window.update_progress(("Loading complete!", 100))
+        self.progress_window.close()
+
+    def on_loading_error(self, error_code):
+        pass
 
     def on_search_complete(self, dicom_structure):
         """
@@ -136,6 +166,7 @@ class UIBatchProcessingWindow(object):
 
         self.patient_count = len(dicom_structure.patients)
         self.patient_label.setText("There are {} patient(s) in this directory".format(self.patient_count))
+        self.dicom_structure = dicom_structure
 
     def search_progress(self):
         self.patient_label.setText("Loading files .. ")
