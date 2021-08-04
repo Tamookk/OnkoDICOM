@@ -60,6 +60,7 @@ class UIBatchProcessingWindow(object):
         self.back_button.setStyleSheet(self.stylesheet)
         self.confirm_button = QPushButton("Confirm")
         self.confirm_button.setObjectName("ConfirmButton")
+        self.confirm_button.setEnabled(False)
         self.confirm_button.setStyleSheet(self.stylesheet)
 
         self.layout = QVBoxLayout()
@@ -79,10 +80,10 @@ class UIBatchProcessingWindow(object):
         self.middle_layout.addWidget(self.patient_label, 0, 0, 1, 4)
 
         self.iso2roi_checkbox = QCheckBox("ISO2ROI")
-        self.suv2roi_checkbox = QCheckBox("SUV2ROI")
+        #self.suv2roi_checkbox = QCheckBox("SUV2ROI")
 
         self.middle_layout.addWidget(self.iso2roi_checkbox)
-        self.middle_layout.addWidget(self.suv2roi_checkbox)
+        #self.middle_layout.addWidget(self.suv2roi_checkbox)
 
         self.bottom_layout.addWidget(self.bottom_label, 0, 0, 2, 4)
         self.bottom_layout.addWidget(self.refresh_button, 2, 0, 1, 1)
@@ -100,7 +101,7 @@ class UIBatchProcessingWindow(object):
         self.back_button.clicked.connect(lambda: batch_window_instance.close())
 
         self.iso2roi_checkbox.stateChanged.connect(lambda state: self.checkbox_changed("iso2roi", state))
-        self.suv2roi_checkbox.stateChanged.connect(lambda state: self.checkbox_changed("suv2roi", state))
+        #self.suv2roi_checkbox.stateChanged.connect(lambda state: self.checkbox_changed("suv2roi", state))
 
         self.dicom_structure = {}
 
@@ -135,6 +136,7 @@ class UIBatchProcessingWindow(object):
         """
         When the line edit box is changed, update related fields.
         """
+        self.confirm_button.setEnabled(False)
         self.file_path = self.directory_input.text()
 
 
@@ -146,7 +148,7 @@ class UIBatchProcessingWindow(object):
         self.progress_window.signal_loaded.connect(self.on_loaded)
         self.progress_window.signal_error.connect(self.on_loading_error)
 
-        self.progress_window.start_processing(self.dicom_structure)
+        self.progress_window.start_processing(self.dicom_structure, self.processes)
         self.progress_window.exec_()
 
     def on_loaded(self):
@@ -163,6 +165,7 @@ class UIBatchProcessingWindow(object):
         """
         if dicom_structure is None:  # dicom_structure will be None if function was interrupted.
             return
+        self.confirm_button.setEnabled(True)
 
         self.patient_count = len(dicom_structure.patients)
         self.patient_label.setText("There are {} patient(s) in this directory".format(self.patient_count))
@@ -172,6 +175,7 @@ class UIBatchProcessingWindow(object):
         self.patient_label.setText("Loading files .. ")
 
     def scan_directory_for_patients(self):
+        self.confirm_button.setEnabled(False)
         if self.file_path != "":
             self.interrupt_flag = threading.Event()
 

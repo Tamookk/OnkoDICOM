@@ -35,8 +35,8 @@ class BatchProgressWindow(QDialog):
         self.threadpool = QThreadPool()
         self.interrupt_flag = threading.Event()
 
-    def start_processing(self, dicom_structure):
-        batch_processing_controller = BatchProcessingController(dicom_structure)
+    def start_processing(self, dicom_structure, processes):
+        batch_processing_controller = BatchProcessingController(dicom_structure, processes)
 
         worker = Worker(batch_processing_controller.start_processing, self.interrupt_flag, progress_callback=True)
         worker.signals.result.connect(self.on_finish)

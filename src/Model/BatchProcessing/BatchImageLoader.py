@@ -1,21 +1,18 @@
 import os
 
-from PySide6 import QtCore
 from pydicom import dcmread
 
 from src.Model import ImageLoading
 from src.Model.BatchProcessing.BatchPatientDictContainer import BatchPatientDictContainer
 
 
-class BatchImageLoader(QtCore.QObject):
+class BatchImageLoader:
     """
     This class is responsible for initializing and creating all the values required to create an instance of
     the PatientDictContainer, that is used to store all the DICOM-related data used to create the patient window.
     """
-    def __init__(self, selected_files, parent_window, *args, **kwargs):
-        super(BatchImageLoader, self).__init__(*args, **kwargs)
+    def __init__(self, selected_files):
         self.selected_files = selected_files
-        self.parent_window = parent_window
 
     def load(self, interrupt_flag, progress_callback):
         """
