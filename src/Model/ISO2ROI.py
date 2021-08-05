@@ -17,10 +17,12 @@ class WorkerSignals(QtCore.QObject):
 
 class ISO2ROI:
     """This class is for converting isodose levels to ROIs."""
-    def __init__(self):
+    def __init__(self, patient_dict_container=None, enable_popups=True):
         self.worker_signals = WorkerSignals()
         self.signal_roi_drawn = self.worker_signals.signal_roi_drawn
         self.isodose_levels = {}
+        self.patient_dict_container = patient_dict_container
+        self.enable_popups = enable_popups
 
     def get_iso_levels(self):
         """
@@ -47,7 +49,10 @@ class ISO2ROI:
                  isodose level.
         """
         # Initialise variables needed to find isodose levels
-        patient_dict_container = PatientDictContainer()
+        if self.patient_dict_container:
+            patient_dict_container = self.patient_dict_container
+        else:
+            patient_dict_container = PatientDictContainer()
         pixmaps = patient_dict_container.get("pixmaps")
         slider_min = 0
         slider_max = len(pixmaps)
@@ -90,7 +95,10 @@ class ISO2ROI:
         :param contours: dictionary of contours to turn into ROIs.
         """
         # Initialise variables needed for function
-        patient_dict_container = PatientDictContainer()
+        if self.patient_dict_container:
+            patient_dict_container = self.patient_dict_container
+        else:
+            patient_dict_container = PatientDictContainer()
         dataset_rtss = patient_dict_container.get("dataset_rtss")
         pixmaps = patient_dict_container.get("pixmaps")
         slider_min = 0
@@ -155,7 +163,7 @@ class ISO2ROI:
                 # Create the ROI(s)
                 for array in single_array:
                     rtss = ROI.create_roi(dataset_rtss, item,
-                                          array, dataset, "DOSE_REGION")
+                                          array, dataset, "DOSE_REGION", patient_dict_container)
 
                     # Save the updated rtss
                     patient_dict_container.set("dataset_rtss", rtss)
@@ -170,14 +178,19 @@ class ISO2ROI:
         # Save the new ROIs to the RT Struct file
         rtss_directory = Path(patient_dict_container.get("file_rtss"))
 
-        confirm_save = QtWidgets.QMessageBox.information(None, "Confirmation",
-                                                         "Are you sure you want to save the modified RTSTRUCT file? This will "
-                                                         "overwrite the existing file. This is not reversible.",
-                                                         QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if self.enable_popups:
+            confirm_save = QtWidgets.QMessageBox.information\
+                (None, "Confirmation",
+                     "Are you sure you want to save the modified RTSTRUCT file? This will "
+                     "overwrite the existing file. This is not reversible.",
+                     QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
 
-        if confirm_save == QtWidgets.QMessageBox.Yes:
+            if confirm_save == QtWidgets.QMessageBox.Yes:
+                patient_dict_container.get("dataset_rtss").save_as(rtss_directory)
+                QtWidgets.QMessageBox.about(None, "File saved", "The RTSTRUCT file has been saved.")
+                patient_dict_container.set("rtss_modified", False)
+        else:
             patient_dict_container.get("dataset_rtss").save_as(rtss_directory)
-            QtWidgets.QMessageBox.about(None, "File saved", "The RTSTRUCT file has been saved.")
             patient_dict_container.set("rtss_modified", False)
 
     def generate_rtss(self, file_path):
@@ -204,7 +217,10 @@ class ISO2ROI:
         rtss = FileDataset(file_name, {}, b"\0" * 128, file_meta)
 
         # Get Study Instance UID from another file in the dataset
-        patient_dict_container = PatientDictContainer()
+        if self.patient_dict_container:
+            patient_dict_container = self.patient_dict_container
+        else:
+            patient_dict_container = PatientDictContainer()
 
         # Add required data elements
         # Patient information
