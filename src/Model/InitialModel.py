@@ -10,7 +10,7 @@ from src.Model import ImageLoading
 from src.Controller.PathHandler import resource_path
 
 
-def create_initial_model():
+def create_initial_model(patient_dict_container=None):
     """
     This function initializes all the attributes in the PatientDictContainer
     model required for the operation of the main window. This should be
@@ -21,7 +21,8 @@ def create_initial_model():
     ##############################
     #  LOAD PATIENT INFORMATION  #
     ##############################
-    patient_dict_container = PatientDictContainer()
+    if not patient_dict_container:
+        patient_dict_container = PatientDictContainer()
 
     dataset = patient_dict_container.dataset
     filepaths = patient_dict_container.filepaths

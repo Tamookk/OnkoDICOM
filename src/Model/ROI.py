@@ -136,7 +136,7 @@ def add_to_roi(rtss, roi_name, roi_coordinates, data_set):
 
 
 def create_roi(rtss, roi_name, roi_coordinates, data_set,
-               rt_roi_interpreted_type="ORGAN"):
+               rt_roi_interpreted_type="ORGAN", patient_dict_container=None):
     """
         Create new ROI to rtss
         :param rtss: dataset of RTSS
@@ -146,7 +146,9 @@ def create_roi(rtss, roi_name, roi_coordinates, data_set,
         :return: rtss, with added ROI
         """
 
-    patient_dict_container = PatientDictContainer()
+    if not patient_dict_container:
+        patient_dict_container = PatientDictContainer()
+
     existing_rois = patient_dict_container.get("rois")
     roi_exists = False
 

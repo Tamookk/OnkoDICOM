@@ -491,6 +491,7 @@ class AddOnOptions(QtWidgets.QMainWindow, UIAddOnOptions):
                 self.table_roi.setItem(i, 2, items[2])
                 if len(items) > 3:
                     self.table_roi.setItem(i, 3, items[3])
+                i += 1
 
         # patient hash ID table, which is just for displaying all the
         # patients anonymized byt the software since intallation

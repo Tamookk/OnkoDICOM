@@ -1,7 +1,10 @@
+import os.path
+from pathlib import Path
 from PySide6 import QtWidgets, QtGui, QtCore
 from src.Model.PatientDictContainer import PatientDictContainer
 from src.View.ProgressWindow import ProgressWindow
 from src.Model.ISO2ROI import ISO2ROI
+
 
 isodose_percentages = [107, 105, 100, 95, 90, 80, 70, 60, 30, 10]
 
@@ -33,6 +36,10 @@ class IsodoseTab(QtWidgets.QWidget):
         self.isodose_tab_layout.setSpacing(0)
         self.init_layout()
         self.iso2roi = ISO2ROI()
+
+        # Add button to tab
+        self.isodose_tab_layout.addStretch()
+        self.isodose_tab_layout.addLayout(self.iso2roi_layout)
 
         # Add button to tab
         self.isodose_tab_layout.addStretch()
