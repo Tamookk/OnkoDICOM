@@ -64,6 +64,7 @@ class UIAddOnOptions(object):
         self.change_default_directory = ChangeDefaultDirectory(self)
         self.clinical_data_csv_dir_options = \
             ClinicalDataCSVDirectoryOptions(self)
+        self.logging_options = LoggingOptions(self)
 
         self.create_cancel_button()
         self.create_apply_button()
@@ -102,6 +103,7 @@ class UIAddOnOptions(object):
             self.change_default_directory_frame, 1, 0, 1, 3)
         self.option_layout.addWidget(self.clinical_data_csv_dir_frame,
                                      1, 0, 1, 3)
+        self.option_layout.addWidget(self.logging_frame, 1, 0, 1, 3)
 
         # Add Button Widgets
         self.option_layout.addWidget(self.add_new_window, 2, 2)
@@ -208,6 +210,7 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(False)
             self.change_default_directory_frame.setVisible(False)
             self.clinical_data_csv_dir_frame.setVisible(False)
+            self.logging_frame.setVisible(False)
         elif type == "Standard Organ Names":
             self.table_modules.setVisible(False)
             self.table_view.setVisible(False)
@@ -226,6 +229,7 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(False)
             self.change_default_directory_frame.setVisible(False)
             self.clinical_data_csv_dir_frame.setVisible(False)
+            self.logging_frame.setVisible(False)
         elif type == "Standard Volume Names":
             self.table_modules.setVisible(False)
             self.table_view.setVisible(False)
@@ -244,7 +248,7 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(False)
             self.change_default_directory_frame.setVisible(False)
             self.clinical_data_csv_dir_frame.setVisible(False)
-
+            self.logging_frame.setVisible(False)
         elif type == "Create ROIs from Isodoses":
             self.table_modules.setVisible(False)
             self.table_view.setVisible(False)
@@ -263,7 +267,7 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(False)
             self.change_default_directory_frame.setVisible(False)
             self.clinical_data_csv_dir_frame.setVisible(False)
-
+            self.logging_frame.setVisible(False)
         elif type == "Patient ID - Hash ID":
             self.table_modules.setVisible(False)
             self.table_view.setVisible(False)
@@ -282,6 +286,7 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(False)
             self.change_default_directory_frame.setVisible(False)
             self.clinical_data_csv_dir_frame.setVisible(False)
+            self.logging_frame.setVisible(False)
         elif type == "User Options" or type == "Configuration":
             self.add_new_window.setVisible(False)
             self.delete_window.setVisible(False)
@@ -300,6 +305,7 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(False)
             self.change_default_directory_frame.setVisible(False)
             self.clinical_data_csv_dir_frame.setVisible(False)
+            self.logging_frame.setVisible(False)
         elif type == "Line & Fill configuration":
             self.add_new_window.setVisible(False)
             self.delete_window.setVisible(False)
@@ -318,6 +324,7 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(True)
             self.change_default_directory_frame.setVisible(False)
             self.clinical_data_csv_dir_frame.setVisible(False)
+            self.logging_frame.setVisible(False)
         elif type == "Default directory":
             self.add_new_window.setVisible(False)
             self.delete_window.setVisible(False)
@@ -336,8 +343,10 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(False)
             self.change_default_directory_frame.setVisible(True)
             self.clinical_data_csv_dir_frame.setVisible(False)
+            self.logging_frame.setVisible(False)
         elif type == "Clinical Data CSV File":
             self.add_new_window.setVisible(False)
+            self.delete_window.setVisible(False)
             self.add_new_roi.setVisible(False)
             self.delete_roi.setVisible(False)
             self.add_standard_volume_name.setVisible(False)
@@ -353,6 +362,26 @@ class UIAddOnOptions(object):
             self.fill_options.setVisible(False)
             self.change_default_directory_frame.setVisible(False)
             self.clinical_data_csv_dir_frame.setVisible(True)
+            self.logging_frame.setVisible(False)
+        elif type == "Logging Options":
+            self.table_modules.setVisible(False)
+            self.table_view.setVisible(False)
+            self.table_organ.setVisible(False)
+            self.table_volume.setVisible(False)
+            self.table_roi.setVisible(False)
+            self.table_ids.setVisible(False)
+            self.add_new_window.setVisible(False)
+            self.delete_window.setVisible(False)
+            self.add_new_roi.setVisible(False)
+            self.delete_roi.setVisible(False)
+            self.add_standard_volume_name.setVisible(False)
+            self.add_standard_organ_name.setVisible(False)
+            self.import_organ_csv.setVisible(False)
+            self.note.setVisible(False)
+            self.fill_options.setVisible(False)
+            self.change_default_directory_frame.setVisible(False)
+            self.clinical_data_csv_dir_frame.setVisible(False)
+            self.logging_frame.setVisible(True)
 
 
 class WindowingOptions(object):
@@ -1041,6 +1070,66 @@ class ClinicalDataCSVDirectoryOptions(object):
         )[0]
         if len(path) > 0:
             self.clinical_data_csv_dir_input_box.setText(path)
+
+
+class LoggingOptions(object):
+    """
+    The UI for changing the logging options (current just log level).
+    """
+
+    def __init__(self, window_options):
+        """
+        Create the components for the UI of logging option.
+        :param window_options: the options window object.
+        """
+        self.window = window_options
+        self.create_logging_frame()
+
+    def create_logging_frame(self):
+        """
+        Create the logging options frame.
+        """
+        # Create the frame
+        self.window.logging_frame = QtWidgets.QFrame()
+        self.window.logging_frame.setVisible(False)
+
+        # Create the layout and widgets
+        self.logging_layout = QtWidgets.QVBoxLayout()
+        self.log_level_info = QtWidgets.QLabel()
+        self.log_level_combo_box = QtWidgets.QComboBox()
+        self.logging_layout.addWidget(self.log_level_info)
+        self.logging_layout.addStretch(1)
+        self.logging_layout.addWidget(self.log_level_combo_box)
+        self.logging_layout.addStretch(1)
+
+        # Set log level info text
+        text = "This is to set the logging level. Logging involves writing " \
+               "details of what you are doing to a file to aid developers " \
+               "in finding and fixing bugs. Logs do not include any patient " \
+               "information. Lower numbered levels log more information, which produces larger log files." \
+               "Everything above the selected level is included.\n\nAn " \
+               "explanation of the log levels:\nDebug (1) - This logs the " \
+               "most amount of information. Used to help developers to find " \
+               "and fix problems.\n\nInfo (2) - This logs a large amount of " \
+               "information. It is used for general messages.\n\nWarning (3)" \
+               " - This is the default level. It logs all warnings.\n\nError" \
+               " (4) - This logs all errors.\n\nCritical (5) - This logs " \
+               "the least amount of information, only logging critical " \
+               "errors that cause the program to crash."
+        self.log_level_info.setText(text)
+        self.log_level_info.setAlignment(QtCore.Qt.AlignJustify)
+        self.log_level_info.setWordWrap(True)
+
+        # Set combobox options
+        self.log_level_combo_box.addItem("Debug (1)")
+        self.log_level_combo_box.addItem("Info (2)")
+        self.log_level_combo_box.addItem("Warning (3)")
+        self.log_level_combo_box.addItem("Error (4)")
+        self.log_level_combo_box.addItem("Critical (5)")
+        self.log_level_combo_box.setCurrentIndex(2)
+
+        # Set the frame's layout
+        self.window.logging_frame.setLayout(self.logging_layout)
 
 
 class UIChangeDefaultDirDragAndDropEvent(QtWidgets.QLineEdit):

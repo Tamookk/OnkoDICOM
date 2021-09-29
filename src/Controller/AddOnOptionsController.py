@@ -109,6 +109,12 @@ class AddOnOptions(QtWidgets.QMainWindow, UIAddOnOptions):
                 "parent_ID": 446,
                 "short_name": "Clinical Data CSV File",
             },
+            {
+                "level": 1,
+                "dbID": 540,
+                "parent_ID": 446,
+                "short_name": "Logging Options",
+            },
         ]
         # create a model for the tree view of options and attach the
         # data
